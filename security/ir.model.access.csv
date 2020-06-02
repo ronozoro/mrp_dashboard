@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_manufacturing_dashboard,manufacturing_dashboard,model_manufacturing_dashboard,purchase_extension.group_mrs_mrs,1,1,1,0
+
+
+
+
+
+
+
+
+
+
+
+
+
+

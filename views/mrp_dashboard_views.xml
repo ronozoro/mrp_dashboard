@@ -1,0 +1,131 @@
+<odoo>
+    <record id="mrp_dashboard_ext" model="ir.ui.view">
+        <field name="name">manufacturing.dashboard.kanban</field>
+        <field name="model">manufacturing.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban create="false" class="oe_background_grey o_kanban_dashboard o_account_kanban">
+                <field name="name"/>
+                <field name="color"/>
+                <field name="mo_details"/>
+                <field name="wo_details"/>
+                <field name="company_id"/>
+                <field name="mo_data"/>
+                <templates>
+                   <t t-name="kanban-box">
+                        <div t-attf-class="#{kanban_color(record.color.raw_value)} new-kanban-graph">
+                            <t t-value="JSON.parse(record.mo_details.raw_value)" t-set="mo_names"/>
+                             <t t-call="MRPNames"/>
+                            <t t-call="JournalBodyGraph"/>
+                            <div class="container o_kanban_card_manage_pane">
+                                         <div class="row">
+                                                    <div class="col-xs-6 o_kanban_card_manage_section o_kanban_manage_view">
+                                                        <div class="o_kanban_card_manage_title">
+                                                            <span>Change Card Colour</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                        <div t-if="widget.editable" class="o_kanban_card_manage_settings row">
+                                            <div class="col-xs-8">
+                                                <ul class="oe_kanban_colorpicker" data-field="color"/>
+                                            </div>
+                                        </div>
+                            </div>
+                        </div>
+                    </t>
+                    <t t-name="MRPNames">
+                        <div t-attf-class="o_kanban_card_header">
+                            <div class="o_kanban_card_header_title">
+                                <div class="row">
+                                 <div class="kanban_font_size">
+                                       <t t-field="record.work_order_per_mo()"/>
+                                       <t t-foreach ="mo_names" t-as ="order">
+                                           <a type="object" name = "func_open_action" style="padding-left: 15px; font-weight:bold;"><t t-esc="order.name"/></a>
+<!--                                           <a type="object" name="action_by_bar_graph_for_work_order">-->
+                                           <t t-if="record.wo_details.raw_value">
+                                               <field name="wo_details" t-att-graph_type="'bar1'"  widget="dashboard_graph" />
+<!--                                               <field name="wo_details1" t-att-graph_type="'line'" widget="dashboard_graph"/>-->
+                                           </t>
+<!--                                           </a>-->
+                                       </t>
+                                 </div>
+                             </div>
+                            </div>
+                            <div class="o_kanban_manage_button_section">
+                                <a class="o_kanban_manage_toggle_button" href="#"><i class="fa fa-ellipsis-v" /></a>
+                            </div>
+                        </div>
+                    </t>
+                     <t t-name="JournalBodyGraph">
+                         <field name="wo_details" t-att-graph_type="'line'" widget="dashboard_graph"/>
+                    </t>
+            </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_load_pivot" model="ir.ui.view">
+        <field name="name">report.workcenter.load.pivot</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <pivot string="Work Center Loads">
+                <field name="duration_expected" type="measure"/>
+                <field name="workcenter_id" type="row"/>
+                <field name="production_date" type="row" interval="day"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_load_graph" model="ir.ui.view">
+        <field name="name">report.workcenter.load.graph</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <graph string="Work Center load" type="bar">
+                <field name="name"/>
+                <field name="production_id"/>
+                <field name="duration_expected"/>
+<!--                <field name="qty_production" type="measure"/>-->
+<!--                <field name="qty_remaining" type="measure"/>-->
+<!--                <field name="state" type="measure"/>-->
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_mrp_load_report_graph" model="ir.actions.act_window">
+        <field name="name">Work Loads</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="view_id" ref="view_load_pivot"/>
+    </record>
+
+    <record id="action_mrp_load_report_pivot" model="ir.actions.act_window.view">
+        <field name="view_mode">graph</field>
+        <field name="view_id" ref="manufacturing_dashboard.view_load_graph"/>
+        <field name="act_window_id" ref="manufacturing_dashboard.action_mrp_load_report_graph"/>
+    </record>
+
+
+
+    <record id="manufacturing_dashboard_kanban" model="ir.actions.act_window">
+        <field name="name">manufacturing Dashboard</field>
+        <field name="res_model">manufacturing.dashboard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="view_id" ref="mrp_dashboard_ext"/>
+<!--        <field name="usage">menu</field>-->
+<!--        <field name="context">{'search_default_dashboard':1}</field>-->
+<!--        <field name="domain">[('belongs_to_company', '=', True)]</field>-->
+        <field name="help" type="html">
+            <p>
+                This is the manufacturing dashboard. If you have not yet
+                installed, please install one first.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_manufacturing_dashboard" name="Dashboard"/>
+    <menuitem id="mrp_dashboard_new" name="M Dashboard" action="manufacturing_dashboard_kanban" parent="menu_manufacturing_dashboard"/>
+    <menuitem id="dashboard_graph_view" name="Dashboard graph" action="manufacturing_dashboard.action_mrp_load_report_graph" parent="menu_manufacturing_dashboard" sequence="111"/>
+</odoo>
